@@ -12,9 +12,9 @@ export class UsersRepository {
         const user = await this.prisma.user.create({
             data: {
                 nome,
-                peso,
-                altura,
-                imc,
+                peso: Number(peso),
+                altura: Number(altura),
+                imc: Number(imc),
                 data,
             }
         });

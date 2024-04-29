@@ -1,26 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="imc-app">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INDICE IMC</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src=https://cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.8.3/angular-locale_pt-br.min.js></script>
     <link rel="stylesheet" href="./style.css">
 </head>
-<body>
+<body ng-controller="imc-controller">
     <div class="all">
         <h1>IMC</h1>
         <div>
-            <h3>Qual seu nome ?</h3>
-            <input type="text" class="inputName">
-            <h3>Quanto você pesa atualmente ?</h3>
-            <input type="text" class="inputPeso">
-            <h3>Qual é a sua altura ?</h3>
-            <input type="text" class="inputAltura">
-            <button onclick="enviarTeste()">Enviar</button>
+            <h3>Nome?</h3>
+            <input type="text" ng-model="userIMC" class="inputName">
+            <h3>Peso?</h3>
+            <input type="text" ng-model="pesoIMC" class="inputPeso">
+            <h3>Altura ?</h3>
+            <input type="text" ng-model="alturaIMC" class="inputAltura">
+            <button ng-click="addIMC()">Enviar</button>
         </div>
-        <div class="result"></div>
         <div class="historico"></div>
     </div>
+
+    <div class="imcList">
+        <label for="" ng-repeat="user in userList">
+            <h1>{{ user.nome }} </h1>
+            <p>Peso: {{ user.peso }} </p>
+            <p>Altura: {{ user.altura }} </p>
+            <p>IMC: {{ user.imc }} </p>
+            <p>Data: {{ user.data | date:"dd/MM/yyyy":"pt-BR" }} </p>
+            <button ng-click="deleteUser(user.id)">Delete</button>
+        </label>
+    </div>
+
     <script src="./script.js"></script>
 </body>
 </html>

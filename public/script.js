@@ -1,4 +1,4 @@
-const historico = [];
+const app = angular.module('imc-app', [])
 
 function calcularIMC(peso, altura) {
     const alturaMetros = altura / 100; 
@@ -17,117 +17,43 @@ function classificacaoIMC(imc) {
     }
 }
 
-function formatarData(data) {
-    const dia = String(data.getDate()).padStart(2, '0');
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const ano = data.getFullYear();
-    return `${dia}/${mes}/${ano}`;
-}
 
-function mostrarHistorico() {
-    const historicoDiv = document.querySelector('.historico');
-    historicoDiv.innerHTML = '';
+app.controller('imc-controller', ($scope, $http)=>{
+    $scope.userIMC = ""
+    $scope.pesoIMC = ""
+    $scope.alturaIMC = ""
+    $scope.imc = ""
+    $scope.data = ""
+    $scope.userList = []
 
-    historico.forEach((teste, index) => {
-        const p = document.createElement('p');
-        const dataFormatada = formatarData(teste.data);
-        const classificacao = classificacaoIMC(teste.imc);
-        p.textContent = `Nome: ${teste.nome}, Data do teste: ${dataFormatada}, Peso: ${teste.peso} kg, Altura: ${teste.altura} cm, IMC: ${teste.imc.toFixed(2)}, Classificação: ${classificacao}`;
-        
-        const btnExcluir = document.createElement('button');
-        btnExcluir.textContent = 'Excluir';
-        btnExcluir.addEventListener('click', () => excluirTeste(index));
-        p.appendChild(btnExcluir);
+    $scope.addIMC = () => {
+        if(!$scope.userIMC) {
+            return alert('Digite um nome!')
+        }
+        $scope.data = new Date()
+       $scope.imc = calcularIMC($scope.pesoIMC, $scope.alturaIMC)
+       $http.post('http://localhost:4545/api/users', {nome: $scope.userIMC, peso: $scope.pesoIMC, altura: $scope.alturaIMC, imc: $scope.imc, data: $scope.data  })
+       .then(() => {
+        $scope.loadTaskList()
+       }, () => {
+            alert("Ocorreu algum erro")
+       })
+    }
+    $scope.loadTaskList = async () => {
+        const { data } = await $http.get('http://localhost:4545/api/users');
+        console.log(data);
+        $scope.userList = data;
+        $scope.$apply();
+    }
 
-        historicoDiv.appendChild(p);
-    });
-}
+    $scope.loadTaskList();
 
-let id = 0;
+    $scope.deleteUser = (id) => {
+        $http.delete('http://localhost:4545/api/users/' + id)
+        .then(() =>{
+            $scope.loadTaskList()
+        })
+    }
+})
 
-function enviarTeste() {
-    const inputPeso = parseFloat(document.querySelector('.inputPeso').value);
-    const inputAltura = parseFloat(document.querySelector('.inputAltura').value);
-    const dataTeste = new Date();
-    const inputNome = document.querySelector('.inputName').value;
 
-    const imc = calcularIMC(inputPeso, inputAltura);
-
-    id = id + 1;
-    historico.push({
-        id: id,
-        nome: inputNome,
-        peso: inputPeso,
-        altura: inputAltura,
-        imc: imc,
-        data: dataTeste
-    });
-
-    createTask(inputNome, inputPeso, inputAltura, imc, dataTeste)
-    mostrarHistorico();
-}
-
-function excluirTeste(index) {
-  // Obtenha o ID do item que deseja excluir do array local historico
-  const id = historico[index].id;
-  historico.splice(index, 1); 
-  mostrarHistorico(); 
-  deleteTask(id); // Passe o ID para a função deleteTask
-}
-// FUNÇÕES DE BACK-END 
-
-function deleteTask(id) {
-  console.log("Tentando excluir o item com o ID:", id);
-  fetch(`http://localhost:4545/api/users/${id}`, { method: 'DELETE' })
-    .then(response => {
-      if (response.ok) {
-        console.log("Item excluído com sucesso do banco de dados.");
-        // Após a exclusão bem-sucedida, atualize o histórico chamando getAllTasks
-        getAllTasks();
-      } else {
-        console.error("Falha ao excluir o item do banco de dados.");
-      }
-    })
-    .catch(error => {
-      console.error("Erro ao excluir o item:", error);
-    });
-}
-
-function createTask(nome, peso, altura, imc, data) {
-    fetch('http://localhost:4545/api/users/', {
-      method: 'POST',
-      headers: {
-         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ nome, peso, altura, imc, data })
-    })
-      .then(() => {
-        getAllTasks()
-      })
-}
-
-function updateTask(id, nome, peso, altura, imc, data) {
-    fetch('http://localhost:4545/api/users/' + id, {
-      method: 'PATCH',
-      headers: {
-         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ nome, peso, altura, imc, data })
-    })
-      .then(() => {
-        getAllTasks()
-      })
-}
-
-const url = './'
-
-function mountTask() {
-    enviarTeste()
-}
-
-function getAllTasks() {
-    fetch('http://localhost:4545/api/users')
-      .then((response) => response.json())
-      .then(data => mostrarHistorico())
-}
-getAllTasks();
